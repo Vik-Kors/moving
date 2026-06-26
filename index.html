@@ -39,6 +39,11 @@
             font-size: 16px;
         }
         .btn-submit { background-color: #4CAF50; }
+        /* Стиль для заблокированной кнопки */
+        .btn-submit:disabled {
+            background-color: #aaaaaa !important;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -55,10 +60,11 @@
         <label>ФИО:</label>
         <input type="text" id="fio" placeholder="Иван Иванов">
 
-        <label>Номер телефона:</label>
-        <input type="tel" id="phone" placeholder="+7 (999) 123-45-67">
+        <label>Номер телефона (только цифры и знаки +, -, ( ) ):</label>
+        <!-- Добавили валидацию ввода прямо в процессе набора -->
+        <input type="text" id="phone" placeholder="+79991234567" oninput="validatePhone(this)">
 
-        <button class="btn btn-submit" onclick="sendData()">Ответить</button>
+        <button id="submit-btn" class="btn btn-submit" onclick="sendData()">Ответить</button>
     </div>
 
     <script>
@@ -74,23 +80,43 @@
             document.getElementById('form-title').innerText = 'Выбран город: ' + city;
         }
 
+        // Функция разрешает вводить только цифры, плюс, минусы и скобки
+        function validatePhone(input) {
+            input.value = input.value.replace(/[^0-9+\-\(\)\s]/g, '');
+        }
+
         function sendData() {
             var fioInput = document.getElementById('fio').value.trim();
             var phoneInput = document.getElementById('phone').value.trim();
+            var submitBtn = document.getElementById('submit-btn');
 
             if (!fioInput || !phoneInput) {
                 alert('Пожалуйста, заполните все поля!');
                 return;
             }
 
-            // Показываем ваше уведомление
+            // Дополнительная проверка номера перед отправкой
+            var phoneCheck = /^[0-9+\-\(\)\s]+$/;
+            if (!phoneCheck.test(phoneInput)) {
+                alert('В номере телефона разрешены только цифры и символы +, -, ()');
+                return;
+            }
+
+            // 1. Блокируем кнопку, чтобы не нажали второй раз
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Отправлено!";
+
+            // 2. Показываем уведомление
             alert("🎉 Спасибо за помощь!");
 
-            // Склеиваем данные в простую строку с секретным маркером на конце
+            // 3. Склеиваем и отправляем данные в бот
             var resultString = chosenCity + " | " + fioInput + " | " + phoneInput + " | СЕКРЕТ_ПЕРЕЕЗД";
-
-            // Передаем строку обратно в бот. Окно закроется автоматически
             tg.sendData(resultString);
+
+            // 4. Закрываем окно Web App автоматически через секунду после отправки
+            setTimeout(function() {
+                tg.close();
+            }, 500);
         }
     </script>
 </body>
