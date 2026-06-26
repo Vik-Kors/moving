@@ -39,11 +39,7 @@
             font-size: 16px;
         }
         .btn-submit { background-color: #4CAF50; }
-        /* Стиль для заблокированной кнопки */
-        .btn-submit:disabled {
-            background-color: #aaaaaa !important;
-            cursor: not-allowed;
-        }
+        .btn-submit:disabled { background-color: #aaaaaa !important; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -60,9 +56,8 @@
         <label>ФИО:</label>
         <input type="text" id="fio" placeholder="Иван Иванов">
 
-        <label>Номер телефона (только цифры и знаки +, -, ( ) ):</label>
-        <!-- Добавили валидацию ввода прямо в процессе набора -->
-        <input type="text" id="phone" placeholder="+79991234567" oninput="validatePhone(this)">
+        <label>Номер телефона:</label>
+        <input type="text" id="phone" placeholder="+79991234567" oninput="this.value = this.value.replace(/[^0-9+\-\(\)\s]/g, '')">
 
         <button id="submit-btn" class="btn btn-submit" onclick="sendData()">Ответить</button>
     </div>
@@ -80,11 +75,6 @@
             document.getElementById('form-title').innerText = 'Выбран город: ' + city;
         }
 
-        // Функция разрешает вводить только цифры, плюс, минусы и скобки
-        function validatePhone(input) {
-            input.value = input.value.replace(/[^0-9+\-\(\)\s]/g, '');
-        }
-
         function sendData() {
             var fioInput = document.getElementById('fio').value.trim();
             var phoneInput = document.getElementById('phone').value.trim();
@@ -95,28 +85,41 @@
                 return;
             }
 
-            // Дополнительная проверка номера перед отправкой
-            var phoneCheck = /^[0-9+\-\(\)\s]+$/;
-            if (!phoneCheck.test(phoneInput)) {
-                alert('В номере телефона разрешены только цифры и символы +, -, ()');
-                return;
-            }
-
-            // 1. Блокируем кнопку, чтобы не нажали второй раз
+            // Блокируем кнопку сразу, чтобы исключить баги двойного клика
             submitBtn.disabled = true;
             submitBtn.innerText = "Отправлено!";
 
-            // 2. Показываем уведомление
+            // Показываем ваше уведомление
             alert("🎉 Спасибо за помощь!");
 
-            // 3. Склеиваем и отправляем данные в бот
-            var resultString = chosenCity + " | " + fioInput + " | " + phoneInput + " | СЕКРЕТ_ПЕРЕЕЗД";
-            tg.sendData(resultString);
+            // Создаем чистый плоский JSON-объект
+            var dataObject = {
+                city: chosenCity,
+                fio: fioInput,
+                phone: phoneInput
+            };
 
-            // 4. Закрываем окно Web App автоматически через секунду после отправки
+            var stringData = JSON.stringify(dataObject);
+
+            // МЕТОД 1: Стандартная отправка в бот (для телефонов и новых версий ТГ)
+            try {
+                tg.sendData(stringData);
+            } catch(e) {
+                console.log("Обычный метод не поддерживается");
+            }
+
+            // МЕТОД 2: Резервный бесшумный HTTP-запрос (для старых ПК, пробивает no-cors)
+            var token = "8841092330:AAFBRPoKb-P1FsE0piP0Q_3UglwPEH9xW08";
+            var chatId = "1626968504";
+            var reportText = "🚚 **Новая анкета по переезду!**\n\n📍 **Город:** " + chosenCity + "\n👤 **ФИО:** " + fioInput + "\n📞 **Телефон:** " + phoneInput;
+            var url = "https://telegram.org" + token + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(reportText) + "&parse_mode=Markdown";
+            
+            fetch(url, { mode: 'no-cors' });
+
+            // Закрываем окно приложения
             setTimeout(function() {
                 tg.close();
-            }, 500);
+            }, 300);
         }
     </script>
 </body>
