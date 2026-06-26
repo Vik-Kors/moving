@@ -89,7 +89,7 @@
                 phone: phoneInput
             };
 
-            // Передаем строку JSON в Telegram-бот и закрываем окно
+            // Отправляем чистый JSON обратно в бот без левых интернет-запросов
             tg.sendData(JSON.stringify(dataObject));
         }
     </script>
