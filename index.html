@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Переезд</title>
-    <!-- Подключаем скрипт Telegram -->
     <script src="https://telegram.org"></script>
     <style>
         body {
@@ -63,13 +62,11 @@
     </div>
 
     <script>
-        // Инициализируем Telegram WebApp
         var tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем окно на максимум
+        tg.expand();
 
         var chosenCity = '';
 
-        // Функция переключения экрана на анкету
         function selectCity(city) {
             chosenCity = city;
             document.getElementById('main-container').style.display = 'none';
@@ -77,24 +74,27 @@
             document.getElementById('form-title').innerText = 'Выбран город: ' + city;
         }
 
-        // Функция отправки данных обратно в бота
         function sendData() {
-            var fio = document.getElementById('fio').value.trim();
-            var phone = document.getElementById('phone').value.trim();
+            var fioInput = document.getElementById('fio').value.trim();
+            var phoneInput = document.getElementById('phone').value.trim();
 
-            if (!fio || !phone) {
+            if (!fioInput || !phoneInput) {
                 alert('Пожалуйста, заполните все поля!');
                 return;
             }
 
-            var result = {
+            // Создаем чистый плоский объект без наворотов
+            var dataObject = {
                 city: chosenCity,
-                fio: fio,
-                phone: phone
+                fio: fioInput,
+                phone: phoneInput
             };
 
-            // Отправляем JSON-строку в Telegram-бот
-            tg.sendData(JSON.stringify(result));
+            // Превращаем его в строку
+            var stringData = JSON.stringify(dataObject);
+
+            // Отправляем строку и закрываем
+            tg.sendData(stringData);
         }
     </script>
 </body>
