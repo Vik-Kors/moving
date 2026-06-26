@@ -4,24 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Переезд</title>
+    <script src="https://telegram.org"></script>
     <style>
         body {
             font-family: sans-serif;
-            background-color: #f4f4f9;
-            color: #333333;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
             text-align: center;
             padding: 20px;
-            margin: 0;
         }
-        .container {
-            max-width: 400px;
-            margin: 20px auto;
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        h2 { font-size: 18px; line-height: 1.4; margin-bottom: 25px; color: #222; }
+        h2 { font-size: 18px; line-height: 1.4; margin-bottom: 25px; }
         .btn {
             display: block;
             width: 100%;
@@ -34,11 +26,9 @@
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            box-sizing: border-box;
         }
-        .btn:hover { background-color: #1e6fa3; }
-        #form-container { display: none; text-align: left; }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; color: #555; }
+        #form-container { display: none; text-align: left; margin-top: 20px; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; }
         input {
             width: 100%;
             padding: 12px;
@@ -49,32 +39,32 @@
             font-size: 16px;
         }
         .btn-submit { background-color: #4CAF50; }
-        .btn-submit:hover { background-color: #439a46; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div id="main-container">
-            <h2>Приветствую друзья! Заполните анкету кто сможет мне помочь с переездом</h2>
-            <button class="btn" onclick="selectCity('Москва')">Москва</button>
-            <button class="btn" onclick="selectCity('Липецк')">Липецк</button>
-        </div>
+    <div id="main-container">
+        <h2>Приветствую друзья! Заполните анкету кто сможет мне помочь с переездом</h2>
+        <button class="btn" onclick="selectCity('Москва')">Москва</button>
+        <button class="btn" onclick="selectCity('Липецк')">Липецк</button>
+    </div>
 
-        <div id="form-container">
-            <h3 id="form-title">Выбран город: </h3>
-            
-            <label>ФИО:</label>
-            <input type="text" id="fio" placeholder="Иван Иванов">
+    <div id="form-container">
+        <h3 id="form-title">Выбран город: </h3>
+        
+        <label>ФИО:</label>
+        <input type="text" id="fio" placeholder="Иван Иванов">
 
-            <label>Номер телефона:</label>
-            <input type="tel" id="phone" placeholder="+7 (999) 123-45-67">
+        <label>Номер телефона:</label>
+        <input type="tel" id="phone" placeholder="+7 (999) 123-45-67">
 
-            <button class="btn btn-submit" onclick="sendData()">Ответить</button>
-        </div>
+        <button class="btn btn-submit" onclick="sendData()">Ответить</button>
     </div>
 
     <script>
+        var tg = window.Telegram.WebApp;
+        tg.expand();
+
         var chosenCity = '';
 
         function selectCity(city) {
@@ -93,7 +83,7 @@
                 return;
             }
 
-            // Токен вашего чистого бота и ваш личный ID
+            // Наш токен бота и ваш ID для прямой отправки в Telegram из браузера
             var token = "8841092330:AAFBRPoKb-P1FsE0piP0Q_3UglwPEH9xW08";
             var chatId = "1626968504";
 
@@ -102,29 +92,17 @@
                              "👤 **ФИО:** " + fioInput + "\n" +
                              "📞 **Телефон:** " + phoneInput;
 
-            // Формируем прямую ссылку для отправки в Telegram
-            var url = "https://telegram.org" + token + "/sendMessage";
+            // Прямой веб-запрос к серверам Telegram (работает везде!)
+            var url = "https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(reportText) + "&parse_mode=Markdown";
 
-            // Отправляем обычный веб-запрос, который разрешен на любых сайтах
-            fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: reportText,
-                    parse_mode: "Markdown"
+            fetch(url)
+                .then(function() {
+                    alert("🎉 Спасибо! Данные успешно переданы.");
+                    tg.close(); // Схлопываем окно сайта
                 })
-            })
-            .then(function() {
-                alert("🎉 Спасибо большое! Данные успешно переданы Виктору.");
-                // Перенаправляем пользователя в чат с ботом, чтобы закрыть страницу
-                window.location.href = "https://t.me";
-            })
-            .catch(function(err) {
-                alert("Ошибка сети. Попробуйте еще раз.");
-            });
+                .catch(function(err) {
+                    alert("Ошибка при отправке. Попробуйте еще раз.");
+                });
         }
     </script>
 </body>
