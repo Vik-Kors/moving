@@ -83,18 +83,26 @@
                 return;
             }
 
-            // Создаем чистый плоский объект без наворотов
-            var dataObject = {
-                city: chosenCity,
-                fio: fioInput,
-                phone: phoneInput
-            };
+            // Наш токен бота и ваш ID для прямой отправки в Telegram из браузера
+            var token = "8841092330:AAFBRPoKb-P1FsE0piP0Q_3UglwPEH9xW08";
+            var chatId = "1626968504";
 
-            // Превращаем его в строку
-            var stringData = JSON.stringify(dataObject);
+            var reportText = "🚚 **Новая анкета по переезду!**\n\n" +
+                             "📍 **Выбранный город:** " + chosenCity + "\n" +
+                             "👤 **ФИО:** " + fioInput + "\n" +
+                             "📞 **Телефон:** " + phoneInput;
 
-            // Отправляем строку и закрываем
-            tg.sendData(stringData);
+            // Прямой веб-запрос к серверам Telegram (работает везде!)
+            var url = "https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(reportText) + "&parse_mode=Markdown";
+
+            fetch(url)
+                .then(function() {
+                    alert("🎉 Спасибо! Данные успешно переданы.");
+                    tg.close(); // Схлопываем окно сайта
+                })
+                .catch(function(err) {
+                    alert("Ошибка при отправке. Попробуйте еще раз.");
+                });
         }
     </script>
 </body>
