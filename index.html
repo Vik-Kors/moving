@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Помощь с переездом</title>
+    <!-- Подключаем стили Telegram -->
+    <script src="https://telegram.org"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h2 { margin-bottom: 25px; font-size: 20px; line-height: 1.4; }
+        .btn-city {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #form-container { display: none; margin-top: 20px; text-align: left; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-container">
+        <h2>Приветствую друзья! Заполните анкету кто сможет мне помочь с переездом</h2>
+        <button class="btn-city" onclick="selectCity('Москва')">Москва</button>
+        <button class="btn-city" onclick="selectCity('Липецк')">Липецк</button>
+    </div>
+
+    <div id="form-container">
+        <h3 id="form-title">Помощь в городе: </h3>
+        
+        <label for="fio">ФИО:</label>
+        <input type="text" id="fio" placeholder="Иван Иванов">
+
+        <label for="phone">Номер телефона:</label>
+        <input type="tel" id="phone" placeholder="+7 (999) 123-45-67">
+
+        <button class="btn-submit" onclick="sendData()">Ответить</button>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем на весь экран
+
+        let chosenCity = '';
+
+        function selectCity(city) {
+            chosenCity = city;
+            document.getElementById('main-container').style.display = 'none';
+            document.getElementById('form-container').style.display = 'block';
+            document.getElementById('form-title').innerText = 'Помощь в городе: ' + city;
+        }
+
+        function sendData() {
+            const fio = document.getElementById('fio').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!fio || !phone) {
+                alert('Пожалуйста, заполните все поля!');
+                return;
+            }
+
+            // Формируем объект данных для отправки обратно в бота
+            const data = {
+                city: chosenCity,
+                fio: fio,
+                phone: phone
+            };
+
+            // Отправляем данные боту и закрываем мини-сайт
+            tg.sendData(JSON.stringify(data));
+        }
+    </script>
+</body>
+</html>
