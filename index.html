@@ -3,79 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Помощь с переездом</title>
-    <!-- Подключаем стили Telegram -->
+    <title>Переезд</title>
     <script src="https://telegram.org"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: sans-serif;
             background-color: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
             text-align: center;
             padding: 20px;
-            margin: 0;
         }
-        h2 { margin-bottom: 25px; font-size: 20px; line-height: 1.4; }
-        .btn-city {
+        h2 { font-size: 20px; margin-bottom: 20px; }
+        .btn {
             display: block;
             width: 100%;
             padding: 15px;
             margin: 10px 0;
             font-size: 18px;
             font-weight: bold;
-            background-color: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            background-color: #2481cc;
+            color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
         }
-        #form-container { display: none; margin-top: 20px; text-align: left; }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; }
+        #form-container { display: none; text-align: left; margin-top: 20px; }
         input {
             width: 100%;
             padding: 12px;
-            margin-bottom: 15px;
+            margin: 8px 0 15px;
             border: 1px solid #ccc;
-            border-radius: 8px;
+            border-radius: 6px;
             box-sizing: border-box;
             font-size: 16px;
         }
-        .btn-submit {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-        }
+        .btn-submit { background-color: #4CAF50; }
     </style>
 </head>
 <body>
 
     <div id="main-container">
         <h2>Приветствую друзья! Заполните анкету кто сможет мне помочь с переездом</h2>
-        <button class="btn-city" onclick="selectCity('Москва')">Москва</button>
-        <button class="btn-city" onclick="selectCity('Липецк')">Липецк</button>
+        <button class="btn" onclick="selectCity('Москва')">Москва</button>
+        <button class="btn" onclick="selectCity('Липецк')">Липецк</button>
     </div>
 
     <div id="form-container">
-        <h3 id="form-title">Помощь в городе: </h3>
-        
-        <label for="fio">ФИО:</label>
+        <h3 id="form-title">Выбран город: </h3>
+        <label>ФИО:</label>
         <input type="text" id="fio" placeholder="Иван Иванов">
-
-        <label for="phone">Номер телефона:</label>
+        <label>Номер телефона:</label>
         <input type="tel" id="phone" placeholder="+7 (999) 123-45-67">
-
-        <button class="btn-submit" onclick="sendData()">Ответить</button>
+        <button class="btn btn-submit" onclick="sendData()">Ответить</button>
     </div>
 
     <script>
-        // Инициализация Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
+        // Инициализация Telegram Web App безопасным способом
+        let tg = window.Telegram.WebApp;
+        
+        try {
+            tg.ready();
+            tg.expand();
+        } catch(e) {
+            console.log("Ошибка инициализации ТГ:", e);
+        }
 
         let chosenCity = '';
 
@@ -83,7 +74,7 @@
             chosenCity = city;
             document.getElementById('main-container').style.display = 'none';
             document.getElementById('form-container').style.display = 'block';
-            document.getElementById('form-title').innerText = 'Помощь в городе: ' + city;
+            document.getElementById('form-title').innerText = 'Выбран город: ' + city;
         }
 
         function sendData() {
@@ -91,19 +82,22 @@
             const phone = document.getElementById('phone').value.trim();
 
             if (!fio || !phone) {
-                alert('Пожалуйста, заполните все поля!');
+                alert('Пожалуйста, заполните поля ФИО и Телефон!');
                 return;
             }
 
-            // Формируем объект данных для отправки обратно в бота
-            const data = {
+            const payload = {
                 city: chosenCity,
                 fio: fio,
                 phone: phone
             };
 
-            // Отправляем данные боту и закрываем мини-сайт
-            tg.sendData(JSON.stringify(data));
+            try {
+                // Отправляем строку JSON обратно в бота
+                tg.sendData(JSON.stringify(payload));
+            } catch(e) {
+                alert("Ошибка отправки данных в Telegram. Попробуйте переоткрыть окно.");
+            }
         }
     </script>
 </body>
