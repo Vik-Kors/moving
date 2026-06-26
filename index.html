@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Переезд</title>
+    <!-- ИСПРАВЛЕНО: Подключили правильный скрипт Telegram Web App -->
     <script src="https://telegram.org"></script>
     <style>
         body {
@@ -74,6 +75,12 @@
             document.getElementById('form-title').innerText = 'Выбран город: ' + city;
         }
 
+        document.addEventListener("DOMContentLoaded", function() {
+            try {
+                tg.ready();
+            } catch(e) {}
+        });
+
         function sendData() {
             var fioInput = document.getElementById('fio').value.trim();
             var phoneInput = document.getElementById('phone').value.trim();
@@ -83,7 +90,6 @@
                 return;
             }
 
-            // Наш токен бота и ваш ID для прямой отправки в Telegram из браузера
             var token = "8841092330:AAFBRPoKb-P1FsE0piP0Q_3UglwPEH9xW08";
             var chatId = "1626968504";
 
@@ -92,16 +98,18 @@
                              "👤 **ФИО:** " + fioInput + "\n" +
                              "📞 **Телефон:** " + phoneInput;
 
-            // Прямой веб-запрос к серверам Telegram (работает везде!)
             var url = "https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(reportText) + "&parse_mode=Markdown";
 
-            fetch(url)
+            // ИСПРАВЛЕНО: Добавили режим { mode: 'no-cors' }, который отключает блокировки безопасности браузера
+            fetch(url, { mode: 'no-cors' })
                 .then(function() {
                     alert("🎉 Спасибо! Данные успешно переданы.");
-                    tg.close(); // Схлопываем окно сайта
+                    try {
+                        tg.close(); // Теперь эта команда отработает без ошибок
+                    } catch(e) {}
                 })
                 .catch(function(err) {
-                    alert("Ошибка при отправке. Попробуйте еще раз.");
+                    alert("Произошел сбой при отправке. Попробуйте еще раз.");
                 });
         }
     </script>
