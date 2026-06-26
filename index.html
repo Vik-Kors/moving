@@ -1,115 +1,83 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Переезд</title>
-    <script src="https://telegram.org"></script>
-    <style>
-        body {
-            font-family: sans-serif;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            text-align: center;
-            padding: 20px;
-        }
-        h2 { font-size: 18px; line-height: 1.4; margin-bottom: 25px; }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            font-size: 18px;
-            font-weight: bold;
-            background-color: #2481cc;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        #form-container { display: none; text-align: left; margin-top: 20px; }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-        .btn-submit { background-color: #4CAF50; }
-    </style>
-</head>
-<body>
+import asyncio
+import json
+import logging
+from aiogram import Bot, Dispatcher, F, types
+from aiogram.filters import CommandStart
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
-    <div id="main-container">
-        <h2>Приветствую друзья! Заполните анкету кто сможет мне помочь с переездом</h2>
-        <button class="btn" onclick="selectCity('Москва')">Москва</button>
-        <button class="btn" onclick="selectCity('Липецк')">Липецк</button>
-    </div>
+logging.basicConfig(level=logging.INFO)
 
-    <div id="form-container">
-        <h3 id="form-title">Выбран город: </h3>
-        
-        <label>ФИО:</label>
-        <input type="text" id="fio" placeholder="Иван Иванов">
+TOKEN = "8841092330:AAFBRPoKb-P1FsE0piP0Q_3UglwPEH9xW08"
+MY_TELEGRAM_ID = 1626968504
+WEB_APP_URL = "https://github.io"
 
-        <label>Номер телефона:</label>
-        <input type="tel" id="phone" placeholder="+7 (999) 123-45-67">
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
 
-        <button class="btn btn-submit" onclick="sendData()">Ответить</button>
-    </div>
 
-    <script>
-        var tg = window.Telegram.WebApp;
-        tg.expand();
+@dp.message(CommandStart())
+async def cmd_start(message: types.Message):
+    kb = [
+        [
+            KeyboardButton(
+                text="🚀 ЗАПОЛНИТЬ АНКЕТУ ПЕРЕЕЗДА",
+                web_app=types.WebAppInfo(url=WEB_APP_URL),
+            )
+        ]
+    ]
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb, resize_keyboard=True, one_time_keyboard=False
+    )
 
-        var chosenCity = '';
+    await message.answer(
+        "Приветствую друзья! Заполните анкету кто сможет мне помочь с переездом. \n\n"
+        "👇 Нажмите на большую кнопку внизу экрана:",
+        reply_markup=keyboard,
+    )
 
-        function selectCity(city) {
-            chosenCity = city;
-            document.getElementById('main-container').style.display = 'none';
-            document.getElementById('form-container').style.display = 'block';
-            document.getElementById('form-title').innerText = 'Выбран город: ' + city;
-        }
 
-        function sendData() {
-            var fioInput = document.getElementById('fio').value.trim();
-            var phoneInput = document.getElementById('phone').value.trim();
+# Этот обработчик принимает любые строковые данные из Web App
+@dp.message(F.web_app_data)
+async def web_app_data_handler(message: types.Message):
+    try:
+        raw_data = message.web_app_data.data
+        data = json.loads(raw_data)
 
-            if (!fioInput || !phoneInput) {
-                alert('Пожалуйста, заполните все поля!');
-                return;
-            }
+        city = data.get("city", "Не указан")
+        fio = data.get("fio", "Не указано")
+        phone = data.get("phone", "Не указан")
+        tg_user = message.from_user.username or "Нет юзернейма"
 
-            var token = "8841092330:AAFBRPoKb-P1FsE0piP0Q_3UglwPEH9xW08";
-            var chatId = "1626968504";
+        report_message = (
+            f"🚚 **Новая анкета по переезду!**\n\n"
+            f"📍 **Выбранный город:** {city}\n"
+            f"👤 **ФИО:** {fio}\n"
+            f"📞 **Телефон:** {phone}\n"
+            f"💬 **Telegram:** @{tg_user}"
+        )
 
-            var reportText = "🚚 **Новая анкетка по переезду!**\n\n" +
-                             "📍 **Выбранный город:** " + chosenCity + "\n" +
-                             "👤 **ФИО:** " + fioInput + "\n" +
-                             "📞 **Телефон:** " + phoneInput;
+        # Отправляем отчет вам лично в чат
+        await bot.send_message(
+            chat_id=MY_TELEGRAM_ID, text=report_message, parse_mode="Markdown"
+        )
 
-            // Используем прокси-сервер для обхода блокировки CORS браузером
-            var targetUrl = "https://telegram.org" + token + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(reportText) + "&parse_mode=Markdown";
-            var proxyUrl = "https://herokuapp.com" + targetUrl;
+        # Отвечаем другу
+        await message.answer(
+            "🎉 Спасибо большое! Данные успешно переданы.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
 
-            // Пробуем отправить сначала через обычный запрос, а если заблокирует — через альтернативный фоновый метод Telegram
-            try {
-                tg.sendData(reportText); // Для мобилок
-            } catch(e) {}
+    except Exception as e:
+        print(f"Ошибка при обработке данных: {e}")
 
-            fetch(targetUrl, { mode: 'no-cors' }) // Режим 'no-cors' убирает ошибку и пропускает данные в ТГ
-                .then(function() {
-                    alert("🎉 Спасибо! Данные успешно переданы.");
-                    tg.close();
-                })
-                .catch(function() {
-                    alert("Произошел сбой, но данные отправлены. Проверьте чат.");
-                    tg.close();
-                });
-        }
-    </script>
-</body>
-</html>
+
+async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Бот остановлен")
