@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Переезд</title>
+    <!-- Подключаем скрипт Telegram -->
     <script src="https://telegram.org"></script>
     <style>
         body {
@@ -13,7 +14,7 @@
             text-align: center;
             padding: 20px;
         }
-        h2 { font-size: 20px; margin-bottom: 20px; }
+        h2 { font-size: 18px; line-height: 1.4; margin-bottom: 25px; }
         .btn {
             display: block;
             width: 100%;
@@ -24,16 +25,17 @@
             background-color: #2481cc;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
         }
         #form-container { display: none; text-align: left; margin-top: 20px; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; }
         input {
             width: 100%;
             padding: 12px;
-            margin: 8px 0 15px;
+            margin-bottom: 15px;
             border: 1px solid #ccc;
-            border-radius: 6px;
+            border-radius: 8px;
             box-sizing: border-box;
             font-size: 16px;
         }
@@ -50,26 +52,24 @@
 
     <div id="form-container">
         <h3 id="form-title">Выбран город: </h3>
+        
         <label>ФИО:</label>
         <input type="text" id="fio" placeholder="Иван Иванов">
+
         <label>Номер телефона:</label>
         <input type="tel" id="phone" placeholder="+7 (999) 123-45-67">
+
         <button class="btn btn-submit" onclick="sendData()">Ответить</button>
     </div>
 
     <script>
-        // Инициализация Telegram Web App безопасным способом
-        let tg = window.Telegram.WebApp;
-        
-        try {
-            tg.ready();
-            tg.expand();
-        } catch(e) {
-            console.log("Ошибка инициализации ТГ:", e);
-        }
+        // Инициализируем Telegram WebApp
+        var tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем окно на максимум
 
-        let chosenCity = '';
+        var chosenCity = '';
 
+        // Функция переключения экрана на анкету
         function selectCity(city) {
             chosenCity = city;
             document.getElementById('main-container').style.display = 'none';
@@ -77,27 +77,24 @@
             document.getElementById('form-title').innerText = 'Выбран город: ' + city;
         }
 
+        // Функция отправки данных обратно в бота
         function sendData() {
-            const fio = document.getElementById('fio').value.trim();
-            const phone = document.getElementById('phone').value.trim();
+            var fio = document.getElementById('fio').value.trim();
+            var phone = document.getElementById('phone').value.trim();
 
             if (!fio || !phone) {
-                alert('Пожалуйста, заполните поля ФИО и Телефон!');
+                alert('Пожалуйста, заполните все поля!');
                 return;
             }
 
-            const payload = {
+            var result = {
                 city: chosenCity,
                 fio: fio,
                 phone: phone
             };
 
-            try {
-                // Отправляем строку JSON обратно в бота
-                tg.sendData(JSON.stringify(payload));
-            } catch(e) {
-                alert("Ошибка отправки данных в Telegram. Попробуйте переоткрыть окно.");
-            }
+            // Отправляем JSON-строку в Telegram-бот
+            tg.sendData(JSON.stringify(result));
         }
     </script>
 </body>
